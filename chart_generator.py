@@ -1,5 +1,6 @@
 import dash_core_components as dcc
 import dash_html_components as html
+import dash_bootstrap_components as dbc
 
 from plotly.subplots import make_subplots
 import plotly.graph_objects as go
@@ -7,10 +8,9 @@ import plotly.graph_objects as go
 import pandas as pd
 
 class ChartGenerator:
-	def __init__(self, df, category, selector):
+	def __init__(self, df, category):
 		self.df = df
 		self.category = category
-		self.selector = selector
 
 	def generate_pie(self, labels, values, start, end, sym='₹'):
 		return go.Pie( labels=labels, 
@@ -25,19 +25,24 @@ class ChartGenerator:
 			           				 "%{percent}<extra></extra>")
 
 	def generate_bar(self, labels, values, df_category, sym='₹'):
-		return go.Bar( x=labels, 
-			           y=values,
-			           hovertext="Name: " + 
-			                      df_category.Name + 
-			                      "<br>Payment Mode: " + 
-			                      df_category['Payment Mode'] + 
-			                      "<br>Comments: " + 
-			                      df_category.Comments,
-			           hovertemplate="Date: %{x}<br>"
-			           				 "Amount: " + sym + "%{y} <br>"
-			           				 "%{hovertext}<extra></extra>",
-			           hoverinfo="skip", 
-			           showlegend=False,)
+		Bar = go.Figure(
+				go.Bar( 
+					x=labels, 
+		            y=values,
+		            hovertext="Name: " + 
+		                      df_category.Name + 
+		                      "<br>Payment Mode: " + 
+		                      df_category['Payment Mode'] + 
+		                      "<br>Comments: " + 
+		                      df_category.Comments,
+		            hovertemplate="Date: %{x}<br>"
+		           				 "Amount: " + sym + "%{y} <br>"
+		           				 "%{hovertext}<extra></extra>",
+		            hoverinfo="skip", 
+		            showlegend=False))
+		Bar.update_layout(bargap=0.5)
+		Bar.update_xaxes(tickformat="%b %e, %Y", tickangle=45, dtick='0')
+		return Bar
 
 	def pie(self):
 		fig_pie = make_subplots(
@@ -60,7 +65,7 @@ class ChartGenerator:
 
 		return fig_pie
 
-	def bar(self):
+	def bar(self, currency):
 		graphs = []
 		for selector in self.df[self.category].unique():
 			if selector == 'Artificial':
@@ -68,26 +73,25 @@ class ChartGenerator:
 
 			df_category = self.df[self.df[self.category].eq(selector) | 
 								  self.df[self.category].eq('Artificial')]
-			fig_bar = make_subplots(
-		        rows=1, 
-		        cols=2, 
-		        column_widths=[0.5, 0.5], 
-		        subplot_titles=("INR", "USD"), 
-		        specs=[[{"type": "xy"}, 
-		                {"type": "xy"}]])
 
-			fig_bar.add_trace(
-				self.generate_bar(df_category.Date, 
-								  df_category.INR, df_category), 1, 1)
-			fig_bar.add_trace(
-				self.generate_bar(df_category.Date, 
-								  df_category.USD, df_category, '$'), 1, 2)		
+			fig_bar=self.generate_bar(df_category.Date, 
+								  	  df_category[currency], 
+								  	  df_category)	
 
-			fig_bar.update_layout(bargap=0.25)
-			fig_bar.update_xaxes(tickformat="%b %e, %Y", tickangle=45)
+			graphs.append(
+				dbc.Card(
+		    	[  
+			    	html.H4(selector, className="card-title", 
+			    					  style={'textAlign':'center'}),
+			    	html.H6(df_category['Date'].tolist()[0].month_name() + 
+			    			' ' + 
+			    			str(df_category['Date'].tolist()[0].year), 
+			    			className="card-subtitle", 
+			    			style={'textAlign':'center'}),
 
-			graphs.append(html.H4(selector, style={'textAlign':'center'}))
-			graphs.append(dcc.Graph(id='bargraph', figure=go.Figure(fig_bar)))
-			# print(df_category)
+					dcc.Graph(id='bargraph', figure=go.Figure(fig_bar)),
+				], body=True)
+				)
+			graphs.append(html.H4('', className="card-title", style={'padding':20}))
 
 		return graphs

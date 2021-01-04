@@ -11,33 +11,32 @@ import pandas as pd
 import chart_generator
 
 class SheetGenerator:
-	def __init__(self, df, title, category, selector, show_pie=False, show_bar=True):
+	def __init__(self, df, title, category):
 		self.df = df
 		self.title = title
 		self.items = []
-		self.cg = chart_generator.ChartGenerator(df, category, selector)
-		self.show_pie = show_pie
-		self.show_bar = show_bar
+		self.cg = chart_generator.ChartGenerator(df, category)
 		self.main()
 
 	def main(self):
 		heading = html.H1(self.title,
                           style={'textAlign':'center'})
 		self.items.append(heading)
-		if self.show_pie: 
-			self.piecharts()
-		if self.show_bar:
-			self.barcharts()
+		self.piecharts()
+		self.barcharts()
 
 	def piecharts(self):
-		piechart = dcc.Graph(id='pie-chart',
-                  		     figure=go.Figure(self.cg.pie()))
+		piechart = dbc.Card(
+		    [  
+		        dcc.Graph(id='pie-chart', 
+		        		  figure=go.Figure(self.cg.pie()))
+		    ], 
+		    body=True,
+		)
 		self.items.append(piechart)
 
 	def barcharts(self):
-		# barchart = dcc.Graph(id='bargraph',dren property of a component 
-  #                 		     figure=go.Figure(self.cg.bar()))
-		self.items = self.items + self.cg.bar()
+		self.items = self.items + self.cg.bar('INR')
 
 	def getSheet(self):
 		return self.items

@@ -22,16 +22,19 @@ class SheetGenerator:
 		heading = html.H1(self.title,
                           style={'textAlign':'center'})
 		self.items.append(heading)
+		self.items.append(html.H4('', className="card-title", style={'padding':20}))
 		self.piecharts()
+		self.items.append(html.H4('', className="card-title", style={'padding':20}))		
 		self.barcharts()
 
 	def piecharts(self):
 		piechart = dbc.Card(
 		    [  
 		        dcc.Graph(id='pie-chart', 
-		        		  figure=go.Figure(self.cg.pie()))
+		        		  figure=go.Figure(self.cg.pie('INR')))
 		    ], 
 		    body=True,
+		    # style={'height':'80vh'}
 		)
 		self.items.append(piechart)
 

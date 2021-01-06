@@ -12,17 +12,26 @@ class ChartGenerator:
 		self.df = df
 		self.category = category
 
-	def generate_pie(self, labels, values, start, end, sym='₹'):
-		return go.Pie( labels=labels, 
-			           values=values, 
-			           texttemplate="%{label}<br>%{percent}",
-			           domain=dict(x=[start, end]),
-			           textposition="inside",
-			           insidetextorientation='radial',
-			           direction="counterclockwise",
-			           hovertemplate="Category: %{label}<br>"
-			           				 + sym + "%{value:,.2f}<br>"
-			           				 "%{percent}<extra></extra>")
+	def generate_pie(self, labels, values, sym='₹'):
+		Pie = go.Figure(
+				go.Pie( 
+					labels=labels, 
+		            values=values, 
+		            texttemplate="%{label}<br>%{percent}",
+		            textposition="inside",
+		            insidetextorientation='radial',
+		            direction="counterclockwise",
+		            hovertemplate="Category: %{label}<br>"
+		           				+ sym + "%{value:,.2f}<br>"
+		           				"%{percent}<extra></extra>")
+				)
+		Pie.update_layout(margin=dict(t=0, b=0, l=0, r=0), legend=dict(
+    yanchor="middle",
+    y=0.5,
+    xanchor="right",
+    x=0.99
+))			
+		return Pie
 
 	def generate_bar(self, labels, values, df_category, sym='₹'):
 		Bar = go.Figure(
@@ -39,31 +48,14 @@ class ChartGenerator:
 		           				 "Amount: " + sym + "%{y} <br>"
 		           				 "%{hovertext}<extra></extra>",
 		            hoverinfo="skip", 
-		            showlegend=False))
+		            showlegend=False), 
+				)
 		Bar.update_layout(bargap=0.5)
 		Bar.update_xaxes(tickformat="%b %e, %Y", tickangle=45, dtick='0')
 		return Bar
 
-	def pie(self):
-		fig_pie = make_subplots(
-	        rows=1, 
-	        cols=2, 
-	        column_widths=[0.5, 0.5], 
-	        subplot_titles=("INR", "USD"), 
-	        specs=[[{"type": "domain"}, 
-	                {"type": "domain"}]], 
-	        horizontal_spacing=0.25)
-
-		fig_pie.add_trace(
-			self.generate_pie(self.df[self.category], 
-							  self.df['INR'], 0, 0.5, '₹'), 1, 1)
-		fig_pie.add_trace(
-			self.generate_pie(self.df[self.category], 
-							  self.df['USD'], 0.5, 1.0, '$'), 1, 2)	
-
-		fig_pie.update_layout(margin=dict(t=0, b=0, l=0, r=0))
-
-		return fig_pie
+	def pie(self, currency):
+		return self.generate_pie(self.df[self.category], self.df[currency], '₹')
 
 	def bar(self, currency):
 		graphs = []

@@ -16,7 +16,7 @@ import sheet_generator
 import style_generator
 
 # Maybe will have to read all files and do for each file
-de = data_extracter.DataExtracter('Expenses/2020/December.csv')
+de = data_extracter.DataExtracter('Expenses/2020/November.csv')
 df = de.get_df()
 month = de.month
 year = de.year

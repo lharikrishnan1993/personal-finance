@@ -42,8 +42,8 @@ class ChartGenerator:
 		                      df_category.Name + 
 		                      "<br>Payment Mode: " + 
 		                      df_category['Payment Mode'] + 
-		                      "<br>Comments: " + 
-		                      df_category.Comments,
+		                      "<br>Tags: " + 
+		                      df_category.Tags,
 		            hovertemplate="Date: %{x}<br>"
 		           				 "Amount: " + sym + "%{y} <br>"
 		           				 "%{hovertext}<extra></extra>",
@@ -54,10 +54,10 @@ class ChartGenerator:
 		Bar.update_xaxes(tickformat="%b %e, %Y", tickangle=45, dtick='0')
 		return Bar
 
-	def pie(self, currency):
-		return self.generate_pie(self.df[self.category], self.df[currency], '₹')
+	def pie(self, currency, currency_symbol='₹'):
+		return self.generate_pie(self.df[self.category], self.df[currency], currency_symbol)
 
-	def bar(self, currency):
+	def bar(self, currency, currency_symbol='₹'):
 		graphs = []
 		for selector in self.df[self.category].unique():
 			if selector == 'Artificial':
@@ -68,7 +68,7 @@ class ChartGenerator:
 
 			fig_bar=self.generate_bar(df_category.Date, 
 								  	  df_category[currency], 
-								  	  df_category)	
+								  	  df_category, currency_symbol)	
 
 			graphs.append(
 				dbc.Card(

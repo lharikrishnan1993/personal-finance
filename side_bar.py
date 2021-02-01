@@ -16,13 +16,18 @@ import sheet_generator
 import style_generator
 
 # Maybe will have to read all files and do for each file
-de = data_extracter.DataExtracter('Expenses/2020/November.csv')
+de = data_extracter.DataExtracter('Expenses/2021/January.csv')
 df = de.get_df()
 month = de.month
 year = de.year
 
-category = sheet_generator.SheetGenerator(df, 'Expenses in ' + month + ' based on Category', 'Category')
-payment = sheet_generator.SheetGenerator(df, 'Expenses in ' + month + ' based on Payment Mode', 'Payment Mode')
+category_USD = sheet_generator.SheetGenerator(df, 'Expenses in ' + month + ' based on Category', 'Category', 'USD', '$')
+category_INR = sheet_generator.SheetGenerator(df, 'Expenses in ' + month + ' based on Category', 'Category', 'INR', '₹')
+category_EUR = sheet_generator.SheetGenerator(df, 'Expenses in ' + month + ' based on Category', 'Category', 'EUR', '€')
+
+payment_USD = sheet_generator.SheetGenerator(df, 'Expenses in ' + month + ' based on Payment Mode', 'Payment Mode', 'USD', '$')
+payment_INR = sheet_generator.SheetGenerator(df, 'Expenses in ' + month + ' based on Payment Mode', 'Payment Mode', 'INR', '₹')
+payment_EUR = sheet_generator.SheetGenerator(df, 'Expenses in ' + month + ' based on Payment Mode', 'Payment Mode', 'EUR', '€')
 
 sg = style_generator.StyleGenerator()
 sg.setSidebarStyle(position="fixed", width="16rem", padding="2rem 1rem", backgroundcolor="#f8f9fa")
@@ -36,8 +41,8 @@ sidebar = html.Div(
         html.Hr(),
         dbc.Nav(
             [
-                dbc.NavLink("Category", href="/", active="exact", style={'textAlign':'center'}),
-                dbc.NavLink("Payment Mode", href="/paymentmode", active="exact", style={'textAlign':'center'}),                
+                dbc.NavLink("Category", href="/", active="exact", style={'textAlign':'center'}, external_link=True),
+                dbc.NavLink("Payment Mode", href="/paymentmode", active="exact", style={'textAlign':'center'}, external_link=True),                
             ],
             vertical=True,
             pills=True,
@@ -54,15 +59,29 @@ app.layout = html.Div([
     content
 ])
 
+category = dbc.Tabs(
+    [  
+        dbc.Tab(category_USD.getSheet(), label="USD", className="mt-3"),
+        dbc.Tab(category_INR.getSheet(), label="INR", className="mt-3"),
+        dbc.Tab(category_EUR.getSheet(), label="EUR", className="mt-3"),        
+    ])
+
+payment = dbc.Tabs(
+    [  
+        dbc.Tab(payment_USD.getSheet(), label="USD", className="mt-3"),
+        dbc.Tab(payment_INR.getSheet(), label="INR", className="mt-3"),
+        dbc.Tab(payment_EUR.getSheet(), label="EUR", className="mt-3"),        
+    ])
+
 @app.callback(
     Output("page-content", "children"),
     [Input("url", "pathname")]
 )
 def render_page_content(pathname):
     if pathname == "/":
-        return category.getSheet()
+        return category
     elif pathname == "/paymentmode":
-        return payment.getSheet()        
+        return payment        
     # If the user tries to reach a different page, return a 404 message
     return dbc.Jumbotron(
         [

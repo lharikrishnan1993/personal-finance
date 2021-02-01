@@ -11,11 +11,13 @@ import pandas as pd
 import chart_generator
 
 class SheetGenerator:
-	def __init__(self, df, title, category):
+	def __init__(self, df, title, category, currency, currency_symbol):
 		self.df = df
 		self.title = title
 		self.items = []
 		self.cg = chart_generator.ChartGenerator(df, category)
+		self.currency = currency
+		self.currency_symbol = currency_symbol
 		self.main()
 
 	def main(self):
@@ -31,15 +33,14 @@ class SheetGenerator:
 		piechart = dbc.Card(
 		    [  
 		        dcc.Graph(id='pie-chart', 
-		        		  figure=go.Figure(self.cg.pie('INR')))
+		        		  figure=go.Figure(self.cg.pie(self.currency, self.currency_symbol)))
 		    ], 
 		    body=True,
-		    # style={'height':'80vh'}
 		)
 		self.items.append(piechart)
 
 	def barcharts(self):
-		self.items = self.items + self.cg.bar('INR')
+		self.items = self.items + self.cg.bar(self.currency, self.currency_symbol)
 
 	def getSheet(self):
 		return self.items

@@ -7,21 +7,23 @@ import plotly.graph_objects as go
 import plotly.express as px
 
 import price_loader as pl
+import spy_investments as spy
 
 import pandas as pd
 
 class InvestmentChartGenerator:
     def __init__(self, df):
         self.df = df
-        self.price_loader = pl.PriceLoader()
+        self.price_loader = pl.PriceLoader('2019-10-23', '1d')
         self.comparison_data = None
         self.get_comparison_data()
+        self.base_investment = spy.BaseStockInvestmentCalculator(self.comparison_data, self.df)
 
     def get_comparison_data(self):
         try:
-            self.comparison_data = self.price_loader.getData('SPY', '2020-12-21', '2021-02-12', '1d')
+            self.comparison_data = self.price_loader.getData('SPY')
         except:
-            print('Error in downloading data')
+            print('Personal-Finance -> Error in downloading Comparison Data from Yahoo Finance')
 
     def generate_line(self, df, x, y, title):
         Line = go.Figure(px.area(df, x=x, y=y, title=title))
@@ -33,8 +35,10 @@ class InvestmentChartGenerator:
         return Line
 
     def generate_comparison_plot(self):
-        return self.generate_line(self.comparison_data, x=self.comparison_data['Date'], y=self.comparison_data['Close'], title='SPY')
-        # return px.area(self.comparison_data, x=self.comparison_data['Date'], y=self.comparison_data['Close'], title='SPY')
+        return self.generate_line(self.comparison_data, 
+                                  x=self.comparison_data['Date'], 
+                                  y=self.comparison_data['Close'], 
+                                  title='SPY')
 
     def generate_pie(self, labels, values, sym='₹'):
         Pie = go.Figure(

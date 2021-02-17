@@ -21,7 +21,7 @@ class InvestmentChartGenerator:
 
     def get_comparison_data(self):
         try:
-            self.comparison_data = self.price_loader.getData('SPY')
+            self.comparison_data = self.price_loader.getData('VOO')
         except:
             print('Personal-Finance -> Error in downloading Comparison Data from Yahoo Finance')
 
@@ -35,9 +35,13 @@ class InvestmentChartGenerator:
         return Line
 
     def generate_comparison_plot(self):
+        self.comparison_data = self.base_investment.getBaseInvestmentHoldings()
+        purchase_price = self.comparison_data['Weighted Average Price'] * self.comparison_data['Shares Available']
+        equity_close = self.comparison_data['Equity Close']
+        equity_purchase_amount = self.comparison_data.tail(1)['Invested Amount'].values[0]
         return self.generate_line(self.comparison_data, 
                                   x=self.comparison_data['Date'], 
-                                  y=self.comparison_data['Close'], 
+                                  y= equity_purchase_amount + equity_close - purchase_price, 
                                   title='SPY')
 
     def generate_pie(self, labels, values, sym='₹'):
@@ -45,10 +49,11 @@ class InvestmentChartGenerator:
 				go.Pie( 
 					labels=labels, 
 		            values=values,
+                    hole=0.4,
                     texttemplate="%{label}<br>%{percent}",
                     textposition='inside',
 		            insidetextorientation='radial',
-		            direction="counterclockwise",
+		            # direction="counterclockwise",
 		            hovertemplate="Category: %{label}<br>"
 		           				+ sym + "%{value:,.2f}<br>"
 		           				"%{percent}<extra></extra>"))

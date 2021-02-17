@@ -1,5 +1,5 @@
 import yfinance as yf
-from datetime import datetime
+import datetime
 
 """
 Make this smart enough to read the data available offline and 
@@ -12,7 +12,7 @@ class PriceLoader:
     def __init__(self, start_date, interval):
         self.interval = interval
         self.start_date = start_date
-        self.end_date = datetime.today().strftime('%Y-%m-%d')
+        self.end_date = (datetime.date.today() + datetime.timedelta(days=1)).strftime('%Y-%m-%d')
 
     def getData(self, ticker):
         df = yf.download(ticker, self.start_date, self.end_date, self.interval)

@@ -20,7 +20,7 @@ class InvestmentSheetGenerator:
         self.main()
 
     def clean_data(self):
-        self.df = self.df[self.df.Sector != 'Total Market']
+        # self.df = self.df[self.df.Sector != 'Total Market']
         self.df = self.df[(self.df['Transaction Type'] == 'BUY') | (self.df['Transaction Type'] == 'SELL')]
 
     def main(self):

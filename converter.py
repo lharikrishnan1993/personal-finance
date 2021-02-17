@@ -52,7 +52,7 @@ if __name__ == "__main__":
                   'Volume': [],
                   'Quantity': [],
                   'Cost': []}
-    filename = 'Expenses/2021/January_Groceries.csv'
+    filename = 'Expenses/2021/Groceries/January.csv'
     empty_df = pd.DataFrame(empty_data, columns=['Date', 'Store', 'Name', 'Volume', 'Quantity', 'Cost'])
     updated_df = empty_df
 

@@ -16,7 +16,7 @@ import investment_sheet_generator as isg
 import style_generator
 
 # Maybe will have to read all files and do for each file
-de_expenses = data_extracter.DataExtracter('Expenses/2021/January.csv')
+de_expenses = data_extracter.DataExtracter('Expenses/2021/February.csv')
 de_investments = pd.read_csv('Investments/Robinhood.csv')
 df = de_expenses.get_df()
 month = de_expenses.month

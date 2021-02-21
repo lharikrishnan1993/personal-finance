@@ -41,7 +41,8 @@ class BaseStockInvestmentCalculator:
         average_buy_price = 0.0
         invested_amount = 0.0
         for index, row in self.base_stock.iterrows():
-            date = datetime.strptime(str(row['Date']), '%Y-%m-%d 00:00:00').strftime('%Y-%m-%d')
+            # date = datetime.strptime(str(row['Date']), '%Y-%m-%d 00:00:00').strftime('%Y-%m-%d')
+            date = row.Date
             share_availability = self.net_trades[self.net_trades['Date'] == date].Shares.values
             price = self.net_trades[self.net_trades['Date'] == date]['Price Close'].values
             if (len(share_availability) > 0):

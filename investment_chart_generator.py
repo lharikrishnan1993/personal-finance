@@ -9,19 +9,30 @@ import plotly.express as px
 import price_loader as pl
 import spy_investments as spy
 
+from datetime import datetime
+
 import pandas as pd
+
+def format_date_from_current_investments(date):
+    return datetime.strptime(date, '%b %d, %Y').strftime('%Y-%m-%d')
+
+def format_date_from_base_stock(date):
+    return datetime.strptime(str(date), '%Y-%m-%d').strftime('%Y-%m-%d')
 
 class InvestmentChartGenerator:
     def __init__(self, df):
         self.df = df
-        self.price_loader = pl.PriceLoader('2019-10-23', '1d')
+        self.base_stock = 'VOO'
+        self.price_loader = pl.PriceLoader('2019-10-23', '30m')
         self.comparison_data = None
         self.get_comparison_data()
         self.base_investment = spy.BaseStockInvestmentCalculator(self.comparison_data, self.df)
+        self.investment_history = pd.DataFrame()
 
     def get_comparison_data(self):
         try:
-            self.comparison_data = self.price_loader.getData('VOO')
+            self.comparison_data = self.price_loader.getData(self.base_stock)
+            self.comparison_data['Date'] = self.comparison_data['Date'].apply(format_date_from_base_stock)
         except:
             print('Personal-Finance -> Error in downloading Comparison Data from Yahoo Finance')
 
@@ -74,13 +85,61 @@ class InvestmentChartGenerator:
 
         fig.update_layout(
             yaxis_title='Invested Amount',
-            title='SPY',
+            # title=self.base_stock,
             hovermode="x"
         )
 
         return fig
 
-    def generate_comparison_plot(self):
+    def generate_current_investment_plot(self):
+        base_stock_plot = self.generate_base_stock_plot()
+        self.comparison_data = self.base_investment.getBaseInvestmentHoldings()        
+        purchase_price = self.comparison_data['Weighted Average Price'] * self.comparison_data['Shares Available']
+        equity_close = self.comparison_data['Equity Close']
+        equity_low = self.comparison_data['Equity Low']
+        equity_high = self.comparison_data['Equity High']               
+        equity_purchase_amount = self.comparison_data.tail(1)['Invested Amount'].values[0]
+
+        self.df['Date'] = self.df['Date'].apply(format_date_from_current_investments)
+        stocks_held = self.df['Ticker Tag'].unique()
+
+        for stock in stocks_held:
+            success, stock_file_name = self.price_loader.storeData(stock)
+            if success == False:
+                print('Error fetching data for ' + stock)
+                continue
+
+        self.investment_history['Date'] = self.comparison_data['Date']
+
+        for stock in stocks_held:
+            profit_per_stock = []
+            for index, row in self.comparison_data.iterrows():
+                date = row.Date
+                if datetime.strptime(date, '%Y-%m-%d') < datetime.strptime(self.df[self.df['Ticker Tag'] == stock].Date.iloc[0], '%Y-%m-%d'):
+                    profit_per_stock.append(0.0)
+                    continue
+                stock_data = pd.read_csv('Stock Information/' + stock + '.csv')
+                df_date = self.df[self.df['Date'] <= date]
+                df_company = df_date[df_date['Ticker Tag'] == stock]
+                stock_close_price = stock_data[stock_data['Date'] == date].Close.values
+                if len(stock_close_price) > 0:
+                    stock_close_price = stock_close_price[0]
+                else:
+                    profit_per_stock.append(0.0)
+                    continue
+                if df_company.Quantity.sum() <= 1e-5:
+                    profit_per_stock.append(0.0)
+                else:
+                    profit_per_stock.append(stock_close_price * df_company.Quantity.sum() - df_company.Amount.sum())
+            self.investment_history[stock] = profit_per_stock
+        
+        self.investment_history['Return'] = self.investment_history.sum(axis=1)
+        self.investment_history['Return'] += self.df.Amount.sum()
+
+        return go.Scatter(x=self.investment_history['Date'], 
+                                     y=self.investment_history['Return'], name='Current Investments')
+
+    def generate_comparison_plot(self):        
         base_stock_plot = self.generate_base_stock_plot()
         self.comparison_data = self.base_investment.getBaseInvestmentHoldings()
         purchase_price = self.comparison_data['Weighted Average Price'] * self.comparison_data['Shares Available']
@@ -89,9 +148,8 @@ class InvestmentChartGenerator:
         equity_high = self.comparison_data['Equity High']               
         equity_purchase_amount = self.comparison_data.tail(1)['Invested Amount'].values[0]
 
-        base_stock_plot.add_trace(go.Scatter(x=self.comparison_data['Date'], 
-                                     y=(equity_purchase_amount + equity_close - purchase_price) + 0.05 * equity_close))
-                                     
+        base_stock_plot.add_trace(self.generate_current_investment_plot())
+
         return base_stock_plot
 
     def generate_pie(self, labels, values, sym='₹'):

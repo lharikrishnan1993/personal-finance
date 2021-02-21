@@ -37,6 +37,8 @@ class InvestmentSheetGenerator:
         self.items.append(piechart)
 
     def linecharts(self):
+        self.items.append(html.H4('', className="card-title", style={'padding':20}))
+        self.items.append(html.H4('Comparison with SPY', className="card-title", style={'textAlign':'center'}))
         linechart = dbc.Card(
             [dcc.Graph(id='line-chart', figure=self.cg.generate_comparison_plot())], 
             body=True,
